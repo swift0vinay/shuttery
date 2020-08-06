@@ -17,10 +17,13 @@ class _SetWallpaperState extends State<SetWallpaper> {
   String url;
   int id;
   bool downloaded;
+  String _setWallpaper = '';
   _SetWallpaperState({this.url, this.id});
+  final key = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: key,
       body: Stack(
         children: <Widget>[
           Hero(
@@ -88,22 +91,14 @@ class _SetWallpaperState extends State<SetWallpaper> {
   }
 
   Future<void> downloadImage(String url, int id) async {
-    final Directory directory = await getApplicationDocumentsDirectory();
-    final Directory myDir = Directory('${directory.path}/downloads');
-    String path = '';
-    if (await myDir.exists()) {
-      //if folder already exists return path
-      path = myDir.path;
-    } else {
-      //if folder not exists create folder and then return its path
-      final Directory _appDocDirNewFolder = await myDir.create(recursive: true);
-      path = myDir.path;
-    }
-    String myp = '$path/$id.jpeg';
+    var dir = await getTemporaryDirectory();
+    String myp = '${dir.path}/$id.jpeg';
     Dio dio = new Dio();
-    dio.download(url, myp, onReceiveProgress: (r, t) {
+    print(myp);
+    await dio.download(url, myp, onReceiveProgress: (r, t) {
       setState(() {
         var totalDownload = ((r / t) * 100).floorToDouble();
+        print(totalDownload);
         if (totalDownload == 100.0) {
           setState(() {
             downloaded = true;
@@ -111,15 +106,26 @@ class _SetWallpaperState extends State<SetWallpaper> {
         }
       });
     });
+    if (downloaded) {
+      _getWallpaper(id);
+    }
   }
 
-  // static const platform = const MethodChannel('wallpaper');
-  // Future<void> _getWallpaper(String path) async {
-  //   try {
-  //     final int res =
-  //         await platform.invokeMethod('getWallpaper', {'text', path});
-  //   } catch (e) {
-  //     print(e.toString());
-  //   }
-  // }
+  static const platform = const MethodChannel('com.example.shuttery/wallpaper');
+  Future<void> _getWallpaper(int id) async {
+    String setWallpaper = '';
+    try {
+      print('path is $id');
+      final int res = await platform.invokeMethod('setWallpaper', '$id.jpeg');
+      setWallpaper = " Wallpaer Updated.. ";
+    } on PlatformException catch (e) {
+      setWallpaper = "Failed to Set Wallpaer: '${e.message}'.";
+    }
+    setState(() {
+      _setWallpaper = setWallpaper;
+    });
+    key.currentState.showSnackBar(SnackBar(
+      content: Text(_setWallpaper),
+    ));
+  }
 }

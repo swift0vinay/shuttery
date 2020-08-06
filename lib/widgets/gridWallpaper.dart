@@ -17,7 +17,7 @@ class _GridWallpaperState extends State<GridWallpaper> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
       child: GridView.count(
         primary: true,
         crossAxisCount: 2,
@@ -42,8 +42,10 @@ class _GridWallpaperState extends State<GridWallpaper> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        SetWallpaper(url: curatedModel.src.portrait)));
+                    builder: (context) => SetWallpaper(
+                          url: curatedModel.src.portrait,
+                          id: curatedModel.id,
+                        )));
           },
           child: Hero(
             tag: curatedModel.src.portrait,
